@@ -87,18 +87,22 @@ pred cheating[s: State] {
   not OTurn[s]
 }
 
-//DO NOTHING
-
-gameOver[s: State] {
+pred gameOver[s: State] {
   some p: Player | winner[s, p]
 }
 
+//DO NOTHING
 pred doNothing[pre: State, post: State] {
     gameOver[pre] -- guard of the transition
     pre.board = post.board -- effect of the transition
 }
 
 // TRACE
+one sig Game {
+  initialState: one State,
+  next: pfunc State -> State
+}
+
 pred traces {
     -- The trace starts with an initial state
     starting[Game.initialState]
@@ -113,18 +117,25 @@ pred traces {
     } 
 }
 
-pred traces {
-    -- The trace starts with an initial state
-    starting[Game.initialState]
-    no sprev: State | Game.next[sprev] = Game.initialState
-    -- Every transition is a valid move
-    all s: State | some Game.next[s] implies {
-      some row, col: Int, p: Player |
-        move[s, row, col, p, Game.next[s]]
-    }
-}
-
 run {
   wellformed
-  traces
-} for exactly 10 State for {next is linear}
+  // traces
+} for exactly 10 State
+//  for {next is linear}
+
+
+test expect {
+  noCheatingAtStart: {
+    wellformed
+    some s: State | s.board[1][2]
+  } is unsat
+  noCheatingTransitions: {
+    wellformed
+    some pre, post: State | 
+    some row, col: Int, p: Player | {
+      not cheating[pre]
+      move[pre, row, col, p, post]
+      cheating[post]
+    }
+  } is unsat
+}
