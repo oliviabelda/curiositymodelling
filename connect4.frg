@@ -6,13 +6,8 @@ one sig Red, Blue extends Player {}
 
 //state - board (6 vertical 7 horizontal)
 sig State {
+  next: lone State,
   board: pfunc Int -> Int -> Player
-}
-
-//the game
-one sig Game {
-  initState: one State,
-  next: pfunc State -> State //next is linear!
 }
 
 //wellformed
@@ -27,20 +22,35 @@ pred wellformed {
   }
 
   // gravity - either first row or have piece below
-  // all s: State | {
-  //   all r, c: Int | {
-  //     s.board[r][c] => {
-  //       (r = 0) or (some s1: State | s != s1 => s1.board[subtract[r,1]][c])
-  //     } 
-  //   }
-  // }
+  all s: State | {
+    all r, c: Int | {
+      r > 0 => {
+        some s1: State | {
+          (s != s1) 
+            => s1.board[subtract[r,1]][c] = Red or s1.board[subtract[r,1]][c] = Blue //TEST LOGIC
+        }
+      } 
+    }
+  }
 }
 
 //initial state - nothing on board
-pred init[s: State] {
+pred start[s: State] {
   all r, c: Int | {
     no s.board[r][c]
   }
+}
+
+//red and blues turn
+
+pred blueTurn[s: State] {
+  #{r, c: Int | s.board[r][c] = Red} =
+  #{r, c: Int | s.board[r][c] = Blue}
+}
+
+pred redTurn[s: State] {
+  #{r, c: Int | s.board[r][c] = Blue} =
+  add[#{r, c: Int | s.board[r][c] = Red}, 1]
 }
 
 //move predicate
@@ -62,19 +72,6 @@ pred move[pre: State, post: State, p: player, r: Int, c: Int] {
   }
 }
 
-
-//red and blues turn
-
-pred blueTurn[s: State] {
-  #{r, c: Int | s.board[r][c] = Red} =
-  #{r, c: Int | s.board[r][c] = Blue}
-}
-
-pred redTurn[s: State] {
-  #{row, col: Int | s.board[row][col] = Blue} =
-  add[#{row, col: Int | s.board[row][col] = Red}, 1]
-}
-
 //winning! -> four in a row, horizontal, vertical, diagonal
 
 //cheating (not your turn to play)
@@ -83,22 +80,10 @@ pred cheat[s: State] {
   not blueTurn[s]
 }
 
-//traces
--- start init state
--- every move is valid
--- do nothing when wining
-pred traces {
-  init[Game.initState]
-  //make sure init has no previous state
-  no prev: State | prev.next = Game.initState
-  //every transition is valid
-  all s: State | some Game.next[s] implies {
-    some r, c: Int, p: Player | {
-      move[s, r, c, p, Game.next[s]] 
-    }
-    or
-    wait[s, Game.next[s]]      
-  } 
+//game is done
+pred gameOver[s: State] {
+  // some p: Player | 
+  // winner[s, p] //TODO: need to make winner pred
 }
 
 //doNothing -> someone has won but no one can play
@@ -106,45 +91,56 @@ pred wait[pre: State, post: State] {
     //GUARD
     gameOver[pre]
     //ACTION
-    pre.board = post.board
+    all r, c: Int | {
+      pre.board[r][c] = post.board[r][c] //TEST THIS LOGIC
+    }
 }
 
-//game is done
-pred gameOver[s: State] {
-  // some p: Player | 
-  // winner[s, p] //TODO: need to make winner pred
+//traces
+-- start init state
+-- every move is valid
+-- do nothing when wining
+pred traces {
+  some init, final: State {
+        -- constraints on init state
+        start[init]
+        no s: State | next[s] = init
+
+        -- constraints on final state
+        no s: State | next[final] = s
+
+        -- link init to final state via next
+        reachable[final, init, next]
+
+        -- valid transitions
+        all s: State | s != final => {
+          some r, c: Int, p: Player | {
+            move[s, next[s], p, r, c] 
+          }
+          or
+          wait[s, next[s]]      
+        } 
+    }
 }
+
 
 //run
 --wellformed
 --traces
 -- for exactly  _ states, for {next is linear}
-// run {
-//   wellformed
-// } for exactly 42 State 
-// for {next is linear}
-
-// //test!
-// test expect {
-//   noCheatingAtStart: {
-//     wellformed
-//     some s: State | s.board[1][2]
-//   } is unsat
-// }
-
 run {
   wellformed
-  // traces
-} for exactly 10 State for {next is linear}
+  traces
+} for exactly 5 State for {next is linear}
 
 
-// test expect {
-//   bounds: {
-//     wellformed
-//     some s: State, r, c: Int | {
-//       r > 5 or r < 0
-//       c > 6 or c < 0
-//       s.board[r][c]
-//     }
-//   } is unsat
-// }
+test expect {
+  bounds: {
+    wellformed
+    some s: State, r, c: Int | {
+      r > 5 or r < 0
+      c > 6 or c < 0
+      no s.board[r][c]
+    }
+  } is sat
+}
