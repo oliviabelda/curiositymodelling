@@ -23,13 +23,9 @@ pred wellformed {
 
   // gravity - either first row or have piece below
   all s: State | {
-    all r, c: Int | {
-      r > 0 => {
-        some s1: State | {
-          (s != s1) 
-            => s1.board[subtract[r,1]][c] = Red or s1.board[subtract[r,1]][c] = Blue //TEST LOGIC
-        }
-      } 
+    all r, c: Int | r != 5 => {
+      (s.board[r][c] = Red or s.board[r][c] = Blue) => {
+        s.board[add[r,1]][c] = Red or s.board[add[r,1]][c] = Blue} //TEST LOGIC 
     }
   }
 }
@@ -61,14 +57,10 @@ pred move[pre: State, post: State, p: player, r: Int, c: Int] {
   p = Red implies redTurn[pre]
   p = Blue implies blueTurn[pre]
   // ACTION
-  all r1, c1: Int | {
-    (r = r1 and c = c1) => {
-      //move p
-      post.board[r1][c1] = p
-    } else {
-      //no change
-      post.board[r1][c1] = pre.board[r1][c1]
-    }
+  all r2, c2: Int | {    
+    (r = r2 and c = c2) 
+      =>   post.board[r2][c2] = p //move p
+      else post.board[r2][c2] = pre.board[r2][c2] //make sure rest of board is same
   }
 }
 
@@ -117,8 +109,8 @@ pred traces {
           some r, c: Int, p: Player | {
             move[s, next[s], p, r, c] 
           }
-          or
-          wait[s, next[s]]      
+          // or
+          // wait[s, next[s]]      
         } 
     }
 }
@@ -131,7 +123,7 @@ pred traces {
 run {
   wellformed
   traces
-} for exactly 5 State for {next is linear}
+} for exactly 5 State, 7 Int for {next is linear}
 
 
 test expect {

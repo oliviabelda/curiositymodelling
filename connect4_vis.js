@@ -5,14 +5,14 @@ function printValue(row, col, yoffset, value) {
   d3.select(svg)
     .append("text")
     .style("fill", "black")
-    .attr("x", (row+1)*10)
-    .attr("y", (col+1)*14 + yoffset)
+    .attr("x", (col+1)*10)
+    .attr("y", (row+1)*14 + yoffset)
     .text(value);
 }
 
 function printState(stateAtom, yoffset) {
-  for (r = 0; r <= 2; r++) {
-    for (c = 0; c <= 2; c++) {
+  for (r = 0; r <= 5; r++) {
+    for (c = 0; c <= 6; c++) {
       printValue(r, c, yoffset,
                  stateAtom.board[r][c]
                  .toString().substring(0,1))  
@@ -23,8 +23,8 @@ function printState(stateAtom, yoffset) {
     .append('rect')
     .attr('x', 5)
     .attr('y', yoffset+1)
-    .attr('width', 40)
-    .attr('height', 50)
+    .attr('width', 120)
+    .attr('height', 90)
     .attr('stroke-width', 2)
     .attr('stroke', 'black')
     .attr('fill', 'transparent');
@@ -35,5 +35,5 @@ var offset = 0
 for(b = 0; b <= 10; b++) {  
   if(State.atom("State"+b) != null)
     printState(State.atom("State"+b), offset)  
-  offset = offset + 55
+  offset = offset + 95
 }
