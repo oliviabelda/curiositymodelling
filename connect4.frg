@@ -61,13 +61,15 @@ pred traces {
   some init, final: State {
         -- constraints on init state
         // start[init]
-        no s: State | next[s] = init
+        // no s: State | next[s] = init
 
         -- alternating players
         no s: State | s.player = next[s].player
 
         -- constraints on final state
         no s: State | next[final] = s
+
+        winner[final, Blue]
         //this is winning state
 
         -- link init to final state via next
@@ -90,7 +92,7 @@ pred traces {
 run {
   wellformed
   traces
-} for 5 State for {next is linear}
+} for {next is linear}
 
 
 test expect {
