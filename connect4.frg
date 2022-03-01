@@ -7,7 +7,8 @@ one sig Red, Blue extends Player {}
 //state - board (6 vertical 7 horizontal)
 sig State {
   next: lone State,
-  board: pfunc Int -> Int -> Player
+  board: pfunc Int -> Int -> Player,
+  player: one Player
 }
 
 //wellformed
@@ -37,25 +38,11 @@ pred start[s: State] {
   }
 }
 
-//red and blues turn
-
-pred blueTurn[s: State] {
-  #{r, c: Int | s.board[r][c] = Red} =
-  #{r, c: Int | s.board[r][c] = Blue}
-}
-
-pred redTurn[s: State] {
-  #{r, c: Int | s.board[r][c] = Blue} =
-  add[#{r, c: Int | s.board[r][c] = Red}, 1]
-}
-
 //move predicate
 --check for empty space, is it your turn
 pred move[pre: State, post: State, p: player, r: Int, c: Int] {
   // GUARD
   no pre.board[r][c]
-  p = Red implies redTurn[pre]
-  p = Blue implies blueTurn[pre]
   // ACTION
   all r2, c2: Int | {    
     (r = r2 and c = c2) 
@@ -66,28 +53,6 @@ pred move[pre: State, post: State, p: player, r: Int, c: Int] {
 
 //winning! -> four in a row, horizontal, vertical, diagonal
 
-//cheating (not your turn to play)
-pred cheat[s: State] {
-  not redTurn[s]
-  not blueTurn[s]
-}
-
-//game is done
-pred gameOver[s: State] {
-  // some p: Player | 
-  // winner[s, p] //TODO: need to make winner pred
-}
-
-//doNothing -> someone has won but no one can play
-pred wait[pre: State, post: State] {
-    //GUARD
-    gameOver[pre]
-    //ACTION
-    all r, c: Int | {
-      pre.board[r][c] = post.board[r][c] //TEST THIS LOGIC
-    }
-}
-
 //traces
 -- start init state
 -- every move is valid
@@ -95,11 +60,15 @@ pred wait[pre: State, post: State] {
 pred traces {
   some init, final: State {
         -- constraints on init state
-        start[init]
+        // start[init]
         no s: State | next[s] = init
+
+        -- alternating players
+        no s: State | s.player = next[s].player
 
         -- constraints on final state
         no s: State | next[final] = s
+        //this is winning state
 
         -- link init to final state via next
         reachable[final, init, next]
@@ -107,11 +76,9 @@ pred traces {
         -- valid transitions
         all s: State | s != final => {
           some r, c: Int, p: Player | {
-            move[s, next[s], p, r, c] 
+            move[s, next[s], s.player, r, c]
           }
-          // or
-          // wait[s, next[s]]      
-        } 
+        } //only 4 states to winning
     }
 }
 
@@ -123,7 +90,7 @@ pred traces {
 run {
   wellformed
   traces
-} for exactly 5 State, 7 Int for {next is linear}
+} for 5 State for {next is linear}
 
 
 test expect {
