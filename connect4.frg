@@ -54,30 +54,30 @@ pred move[pre: State, post: State, p: player, r: Int, c: Int] {
 //winning! -> four in a row, horizontal, vertical, diagonal
 pred winRow[s: State, p: Player, row: Int, col: Int] {
   s.board[row][col] = p
-  s.board[row][col + 1] = p
-  s.board[row][col + 2] = p
-  s.board[row][col + 3] = p
+  s.board[row][add[col, 1]] = p
+  s.board[row][add[col, 2]] = p
+  s.board[row][add[col, 3]] = p
 }
 
 pred winCol[s: State, p: Player, row: Int, col: Int] {
   s.board[row][col] = p
-  s.board[row + 1][col] = p
-  s.board[row + 2][col] = p
-  s.board[row + 3][col] = p  
-}
-
-pred winUpDiagonal[s: State, p: Player, row: Int, col: Int] {
-  s.board[row][col] = p
-  s.board[row + 1][col + 1] = p
-  s.board[row + 2][col + 2] = p
-  s.board[row + 3][col + 3] = p
+  s.board[add[row, 1]][col] = p
+  s.board[add[row, 2]][col] = p
+  s.board[add[row, 3]][col] = p  
 }
 
 pred winDownDiagonal[s: State, p: Player, row: Int, col: Int] {
   s.board[row][col] = p
-  s.board[row - 1][col + 1] = p
-  s.board[row - 2][col + 2] = p
-  s.board[row - 3][col + 3] = p  
+  s.board[add[row, 1]][add[col, 1]] = p
+  s.board[add[row, 2]][add[col, 2]] = p
+  s.board[add[row, 3]][add[col, 3]] = p
+}
+
+pred winUpDiagonal[s: State, p: Player, row: Int, col: Int] {
+  s.board[row][col] = p
+  s.board[subtract[row, 1]][add[col, 1]] = p
+  s.board[subtract[row, 2]][add[col, 2]] = p
+  s.board[subtract[row, 3]][add[col, 3]] = p  
 }
 
 pred winner[s: State, p: Player] {
@@ -88,7 +88,7 @@ pred winner[s: State, p: Player] {
     or
     winUpDiagonal[s, p, row, col]
     or
-    winDownDiagonal[s, ps, row, col]
+    winDownDiagonal[s, p, row, col]
   }
 }
 
@@ -108,14 +108,20 @@ pred traces {
         -- constraints on final state
         no s: State | next[final] = s
 
-        winner[final, Blue]
         //this is winning state
+        winner[final, Blue] or winner[final, Red]
+
+        all s: State | s != final => {
+          not winner[s, Blue]
+          not winner[s, Red]
+        }
 
         -- link init to final state via next
         reachable[final, init, next]
 
         -- valid transitions
         all s: State | s != final => {
+          
           some r, c: Int, p: Player | {
             move[s, next[s], s.player, r, c]
           }

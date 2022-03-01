@@ -23,7 +23,7 @@ function printState(stateAtom, yoffset) {
     .append('rect')
     .attr('x', 5)
     .attr('y', yoffset+1)
-    .attr('width', 120)
+    .attr('width', 80)
     .attr('height', 90)
     .attr('stroke-width', 2)
     .attr('stroke', 'black')
