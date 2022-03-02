@@ -137,7 +137,7 @@ pred traces {
 run {
   wellformed
   traces
-} for {next is linear}
+} for 44 State for {next is linear}
 
 
 test expect {
