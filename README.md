@@ -2,6 +2,12 @@
 
 ## Connect4
 
+`connect4.frg` - forge code
+
+`connect4_vis.js` - visualization script
+
+`collaborators.txt` - list of collaborators
+
 ---
 
 ### **What are you trying to model? Include a brief description that would give someone unfamiliar with the topic a basic understanding of your goal.**
@@ -27,7 +33,3 @@ We also edited the visualizer fom tic-tac-toe to fit out game. We change fit mor
 `Player` is ann abstract sig that will be extended by `Red` and `Blue` which are the two opponents playing this game.
 
 `State` contains `next` field, which maintains the linearity of the state such that every state is reachable, the final state has no next and the initial state is next of any other state. It also contains the `pfunc board` which holds all the pieces to the board and the Player to whom those piece belong to. Finally, there is also a field for `player` which is used to define who's turn it is. In the traces predicate, the alternating player constraint is enforced.
-
----
-
-### In addition to the README be sure to document your model.w
