@@ -24,12 +24,19 @@ Our initial idea was to have model multiple possible game for Connect4. I.E. hav
 
 We also edited the visualizer fom tic-tac-toe to fit out game. We change fit more states on the Sterling page, the pieces are colored and the board is slightly bigger. Make sure to run on `svg` mode. When running the script, you will be able to see that all pieces follow the gravity constraint, that the players are alternating, that there is no winning move before the last state, that the bounds of the board are respected and that the states are linear.
 
-//////////ADD TESTS/EXAMPLES/RUN STATEMENTS
+We added examples to each of our important predicates to check their validity. The examples included checking out of bounds + gravity for the board, initial state of the board, no move + too many moves for each turn, and the win conditions row + column + diagonal + no win. Also we added some tests to further test the flow of our Connect4 game. There was some additional test on the predicates, and then we added tests on the trace for alternating players and a final win state.
 
 ---
 
 ### **At a high level, what do each of your sigs and preds represent in the context of the model? Justify the purpose for their existence and how they fit together.**
 
-`Player` is ann abstract sig that will be extended by `Red` and `Blue` which are the two opponents playing this game.
+`Player` is an abstract sig that will be extended by `Red` and `Blue` which are the two opponents playing this game.
 
 `State` contains `next` field, which maintains the linearity of the state such that every state is reachable, the final state has no next and the initial state is next of any other state. It also contains the `pfunc board` which holds all the pieces to the board and the Player to whom those piece belong to. Finally, there is also a field for `player` which is used to define who's turn it is. In the traces predicate, the alternating player constraint is enforced.
+
+`traces` is a predicate that sets up the flow and logic of the game using many of predicates listed below. It gets the initial state of the game, enforces alternating players between consecutive states, gets the final win state including all previous states with no win, links the initial state to the final, and checks whether the moves between each consecutive state is valid.
+`wellformed` is a predicate that bounds the board to 7by6 and checks for gravity - the pieces drop down to the board. This predicate is used for all states in the game to check validity of the state of the board/game.
+`start` is a predicate that checks whether the board is in the initial state which is where the board is completely empty. This is used in `traces` to set up the start of the game.
+`move` is a predicate that checks whether a valid move was made between two consecutive states. It is used in `traces` to check between each two consecutive states in the game.
+`winRow`, `winCol`, `winDownDiagonal`, and `winUpDiagonal` predicates are used within the `winner` predicate to check whether the current state in the game is won by a player. It is used in `traces` to find the final win state of the game
+

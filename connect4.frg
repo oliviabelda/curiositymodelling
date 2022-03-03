@@ -11,7 +11,7 @@ sig State {
   player: one Player
 }
 
-//wellformed
+// wellformed
 --check for valid place to put piece (ex. gravity)
 -- either there is a piece under, or it is the first row
 pred wellformed {
@@ -67,7 +67,7 @@ example invalidWellFormedOutofBounds is not wellformed for {
   player = `S0 -> Blue
 }
 
-//initial state - nothing on board -> unused predicate
+// initial state - nothing on board -> unused predicate
 pred start[s: State] {
   all r, c: Int | {
     no s.board[r][c]
@@ -84,7 +84,7 @@ example invalidStart is not {some s: State | start[s]} for {
   player = `S0 -> Blue
 }
 
-//move predicate
+// move predicate
 --check for empty space, is it your turn
 pred move[pre: State, post: State, p: Player, r: Int, c: Int] {
   // GUARD
@@ -142,23 +142,7 @@ example invalidMoveTooManyMoves is not {some pre, post: State, p: Player, r, c: 
       `S1 -> Red
 }
 
-// *** Do not include this example, alternating players is handled in traces not move predicate
-// example invalidMoveSamePlayer is not {some pre, post: State, p: Player, r, c: Int | move[pre, post, p, r, c]} for {
-//     State = `S0 + `S1 -- only two states for simplicity
-//     Red = `Red
-//     Blue = `Blue
-//     Player = Red + Blue
-//     board = `S0 -> 5 -> 1 -> Red + 
-//         `S0 -> 5 -> 2 -> Blue + 
-//         `S1 -> 5 -> 1 -> Red +
-//         `S1 -> 5 -> 2 -> Blue +
-//         `S1 -> 5 -> 5 -> Blue
-//     next = `S0 -> `S1
-//     player = `S0 -> Blue +
-//         `S1 -> Blue
-// }
-
-//winning! -> four in a row, horizontal, vertical, diagonal
+// winning! -> four in a row, horizontal, vertical, diagonal
 pred winRow[s: State, p: Player, row: Int, col: Int] {
   s.board[row][col] = p
   s.board[row][add[col, 1]] = p
@@ -187,6 +171,7 @@ pred winUpDiagonal[s: State, p: Player, row: Int, col: Int] {
   s.board[subtract[row, 3]][add[col, 3]] = p  
 }
 
+// win in any of the 4 conditions
 pred winner[s: State, p: Player] {
   some row, col: Int | {
     winRow[s, p, row, col]
@@ -258,7 +243,7 @@ example validWinnerNoWin is {no s: State, p: Player | winner[s, p]} for {
       `S0 -> 4 -> 2 -> Blue
 }
 
-//traces
+// traces
 -- every move is valid
 -- states are linear and reachable
 -- alternating players
@@ -298,10 +283,10 @@ pred traces {
 }
 
 
-//run
+// run
 --wellformed
 --traces
--- for exactly  _ states, for {next is linear} up to 43 states!!
+-- for exactly _ states, for {next is linear} up to 43 states!!
 run {
   wellformed
   traces
@@ -311,10 +296,26 @@ run {
 test expect {
   bounds: {
     wellformed
-    some s: State, r, c: Int | {
+    all s: State, r, c: Int | {
       r > 5 or r < 0
       c > 6 or c < 0
       no s.board[r][c]
     }
-  } is sat
+  } is theorem
+  gravity: {
+    wellformed
+    all s: State, r, c: Int | {
+      r < 5
+      s.board[r][c]
+      no s.board[add[r,1]][c]
+    }
+  } is unsat
+  alternatingPlayers: {
+    traces
+    some s: State | s.player = next[s].player
+  } is unsat
+  traceWin: {
+    traces
+    one s: State | (winner[s, Blue] or winner[s, Red]) and no next[s]
+  } is theorem
 }
