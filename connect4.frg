@@ -302,6 +302,7 @@ test expect {
       no s.board[r][c]
     }
   } is theorem
+
   gravity: {
     wellformed
     all s: State, r, c: Int | {
@@ -310,10 +311,12 @@ test expect {
       no s.board[add[r,1]][c]
     }
   } is unsat
+
   alternatingPlayers: {
     traces
     some s: State | s.player = next[s].player
   } is unsat
+  
   traceWin: {
     traces
     one s: State | (winner[s, Blue] or winner[s, Red]) and no next[s]

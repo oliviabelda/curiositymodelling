@@ -35,8 +35,12 @@ We added examples to each of our important predicates to check their validity. T
 `State` contains `next` field, which maintains the linearity of the state such that every state is reachable, the final state has no next and the initial state is next of any other state. It also contains the `pfunc board` which holds all the pieces to the board and the Player to whom those piece belong to. Finally, there is also a field for `player` which is used to define who's turn it is. In the traces predicate, the alternating player constraint is enforced.
 
 `traces` is a predicate that sets up the flow and logic of the game using many of predicates listed below. It gets the initial state of the game, enforces alternating players between consecutive states, gets the final win state including all previous states with no win, links the initial state to the final, and checks whether the moves between each consecutive state is valid.
+
 `wellformed` is a predicate that bounds the board to 7by6 and checks for gravity - the pieces drop down to the board. This predicate is used for all states in the game to check validity of the state of the board/game.
+
 `start` is a predicate that checks whether the board is in the initial state which is where the board is completely empty. This is used in `traces` to set up the start of the game.
+
 `move` is a predicate that checks whether a valid move was made between two consecutive states. It is used in `traces` to check between each two consecutive states in the game.
+
 `winRow`, `winCol`, `winDownDiagonal`, and `winUpDiagonal` predicates are used within the `winner` predicate to check whether the current state in the game is won by a player. It is used in `traces` to find the final win state of the game
 
